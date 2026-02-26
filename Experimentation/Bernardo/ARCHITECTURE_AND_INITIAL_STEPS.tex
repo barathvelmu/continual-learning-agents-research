@@ -1,0 +1,287 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{url}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\title{Architecture \& Initial Steps\\Bernardo's Working Notes}
+\author{BMW $\times$ MIT GenAI Lab\\Continual Learning Agents Research}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{1em}
+
+\textbf{Working directory:} \texttt{Experimentation/Bernardo}.\\
+\textbf{Guided by:} Project Plan - Draft.pdf and GEPA\_paper.pdf.
+
+\vspace{0.5em}
+\textbf{Approach:} Extra granular, narrative-first. More English, less building for now. Focus on \emph{how} we would approach architecture, data, and evaluation---and on showing \textbf{improvement attributable to better prompts}, not raw document-understanding accuracy.
+
+\textbf{Proposed stack:} \textbf{Trace} (execution + tracing + feedback) + \textbf{GEPA} (reflective prompt optimizer). Trace runs the agent and records what happened; GEPA uses that record plus feedback to propose a better prompt.
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{High-Level Flow of the Project}
+
+End-to-end, the pipeline looks like this. Each line is one ``layer''; the flow is top to bottom.
+
+\begin{enumerate}
+  \item \textbf{PDF in.} We have a document (e.g.\ a repair order). It may be image-based (no extractable text).
+
+  \item \textbf{Document $\to$ representation (fixed tools).} We use \textbf{fixed} tools---e.g.\ a \textbf{vision model} (render PDF pages to images) or \textbf{OCR} (extract text)---to turn the PDF into something the LLM can read. We do \emph{not} optimize these tools; the same conversion is used for baseline and every optimization step.
+
+  \item \textbf{Agent = LLM + system prompt.} The ``agent'' is: we send to the LLM (a) a \textbf{system prompt} (the only thing we will optimize) and (b) the \textbf{document representation} from step 2. The LLM returns an interpretation (e.g.\ extracted fields in JSON). So: \textbf{agent(prompt, document\_representation) $\to$ structured output.}
+
+  \item \textbf{Trace: we put the agent in a graph; the prompt is a trainable node.} We implement the agent inside \textbf{Trace}. The system prompt is stored in a \textbf{Trace trainable node} (e.g.\ \texttt{node(..., trainable=True)} holding the prompt text). When we run the agent, Trace \textbf{traces} execution: it records which prompt was used, the LLM call(s), and the output. So we get a \textbf{trace} (what was sent, what was returned). The ``trace prompt node'' is simply: \emph{the place in Trace where the system prompt lives so it can be read by the LLM and later updated by the optimizer.}
+
+  \item \textbf{Evaluation: score + text feedback ($\mu$f).} We compare the agent's output to \textbf{ground truth} and compute a \textbf{score} (metric $\mu$) and \textbf{text feedback} (e.g.\ ``RO number wrong; VIN missing''). That's our \textbf{feedback function $\mu$f}. Trace can pass this feedback (and the trace) to the optimizer.
+
+  \item \textbf{GEPA proposes a new prompt.} We use \textbf{GEPA} as the optimizer (instead of Trace's built-in OptoPrime/TextGrad). GEPA takes the \textbf{trace} (what the agent did) and the \textbf{feedback} (score + text), and a \textbf{reflection LLM} proposes a \textbf{new system prompt} that should fix the observed mistakes. That's the ``suggested reflection on the prompt.''
+
+  \item \textbf{Update the prompt node and repeat.} We write GEPA's proposed prompt into the \textbf{same Trace trainable node}. Then we run the agent again (same or next document), get a new trace and feedback, and repeat. So: \textbf{run agent (Trace) $\to$ $\mu$f $\to$ GEPA reflects and suggests new prompt $\to$ update node $\to$ run again.}
+
+  \item \textbf{Baseline vs optimized.} For the \textbf{baseline}, we run the agent once with an initial hand-written prompt (no GEPA steps) and record the score. For \textbf{optimized}, we run the GEPA loop for $N$ iterations, then record the score with the final prompt. The \textbf{delta} is the improvement we report as ``from better prompts.''
+\end{enumerate}
+
+\textbf{In one sentence:} We build an agent (LLM + prompt) that uses fixed tools (vision/OCR) to read the document; we run it inside Trace so the prompt is a trainable node and execution is traced; we evaluate with $\mu$f (score + text); GEPA uses the trace and feedback to suggest a new prompt; we update the node and repeat until we have a better prompt to report.
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{What Stakeholders Care About (And What We Optimize For)}
+
+\textbf{Their priority:} They want to see \textbf{improvement that is clearly attributable to better prompts}---not to a bigger model, more training data, or fancier document parsing. The story is: \emph{``We took the same LLM and the same documents; we only changed the system prompt, and the system got better.''} Absolute accuracy (e.g.\ ``we extract 95\% of fields correctly'') is secondary. What matters is the \textbf{delta}: baseline prompt vs evolved prompt, same model, same eval set.
+
+\textbf{Implication for design:} We must be able to hold everything constant (model, data, evaluation procedure) and change \emph{only} the prompt. Then we measure the same metric before and after. Any gain is, by construction, prompt-attributable.
+
+\textbf{End goal in plain English:} Take a general PDF that fits a schema (like the repair-order schema they provided), feed it to an LLM, and have that LLM interpret it \textbf{better than a baseline LLM would}---where ``better'' is measured consistently, and the only lever we pull is the system prompt. So: same model, same documents, better instructions $\to$ better interpretation.
+
+\section{End-to-End Story We Are Telling}
+
+\begin{enumerate}
+  \item We define a \textbf{task}: e.g.\ ``Given this PDF (and its schema), extract or reason about these fields.''
+  \item We build a \textbf{baseline}: one (or a few) system prompt(s), written in plain English, that describe the task and the document structure. We run the \textbf{same} LLM on the \textbf{same} evaluation documents with this baseline prompt and record scores.
+  \item We run a \textbf{prompt-optimization loop}: an automated process that proposes changes to the prompt(s), re-runs the system on the same eval set, and keeps changes that improve the score. The model and the eval set do not change; only the prompts do.
+  \item We \textbf{compare}: baseline prompt vs optimized prompt(s) on the same metric and the same documents. The improvement is our main result---\emph{``prompt evolution yielded a +X\% gain over baseline.''}
+\end{enumerate}
+
+So the architecture, data flow, and evaluation design all need to support this story: \textbf{controlled experiment, single variable (prompt), measurable delta.}
+
+\section{Trace + GEPA Framework (Proposed)}
+
+We propose using \textbf{Trace} and \textbf{GEPA} together: Trace provides the execution and tracing layer; GEPA provides the prompt-optimization logic. They connect at ``run agent $\to$ get trace + feedback $\to$ optimizer updates prompt.''
+
+\subsection{What Trace Does}
+
+\begin{itemize}
+  \item \textbf{Execution:} We implement the agent (LLM + prompt, fed with document representation) as a Trace \textbf{computation graph}. The system prompt is a \textbf{trainable node} (e.g.\ \texttt{node("...", trainable=True)} or equivalent). Tools like vision or OCR run \emph{outside} or \emph{before} the graph: they produce the document representation that we feed in as a non-trainable input.
+  \item \textbf{Tracing:} When we run the graph, Trace records the \textbf{trace}: which nodes ran, what values (e.g.\ prompt text, LLM input/output) they had. So we have a structured record of ``what the agent did.''
+  \item \textbf{Feedback:} We attach our \textbf{feedback function $\mu$f} (score + text) to the output. Trace can pass the trace and the feedback to an optimizer.
+\end{itemize}
+
+So: \textbf{Trace = where the agent runs and where the prompt lives (as a node), and how we capture what happened.}
+
+\subsection{What GEPA Does}
+
+\begin{itemize}  \item \textbf{Input:} The \textbf{trace} (from Trace) and the \textbf{feedback} (score + text from $\mu$f).
+  \item \textbf{Process:} A \textbf{reflection LLM} reads the trace and feedback and proposes a \textbf{new system prompt} that should address the observed failures (e.g.\ ``emphasize checking the RO number in the header'').
+  \item \textbf{Output:} The new prompt text. We write it into the Trace trainable node and run again.
+\end{itemize}
+
+So: \textbf{GEPA = the optimizer that suggests prompt changes from trace + feedback.}
+
+\subsection{How They Connect}
+
+\begin{enumerate}
+  \item \textbf{Build the agent in Trace:} One (or more) trainable node(s) hold the system prompt; the graph calls the LLM with (prompt, document\_representation) and returns structured output.
+  \item \textbf{Run the agent} on a document (or minibatch). Trace produces a \textbf{trace}.
+  \item \textbf{Evaluate:} Run $\mu$f(agent\_output, ground\_truth) $\to$ (score, feedback\_text).
+  \item \textbf{Call GEPA:} Pass (current prompt, trace, score, feedback\_text). GEPA returns a \textbf{proposed new prompt}.
+  \item \textbf{Update:} Set the Trace trainable node to the new prompt. Go to step 2 (next iteration or next document).
+\end{enumerate}
+
+Trace does not need to ``know'' GEPA; we just use GEPA's output to update the node. So we can implement GEPA as a \textbf{custom optimizer} that, given Trace's trace and our $\mu$f result, returns the new prompt string, and we write that into the node. Alternatively, we run GEPA's loop externally and only use Trace for execution and tracing---either way, the flow is the same.
+
+\subsection{Why This Pair}
+
+\begin{itemize}
+  \item \textbf{Trace} gives us a clean way to (a) represent the prompt as a single updatable object, (b) trace execution for the optimizer, and (c) plug in different optimizers. We avoid building the ``run agent $\to$ collect feedback'' harness from scratch.
+  \item \textbf{GEPA} gives us sample-efficient, reflection-based prompt updates that use natural-language feedback (e.g.\ ``RO number wrong'')---aligned with our $\mu$f and with stakeholder interest in interpretable improvements.
+\end{itemize}
+
+Together: \textbf{Trace = skeleton and tracing; GEPA = the brain that improves the prompt.}
+
+\section{Architecture --- How We Approach It (Granular)}
+
+\subsection{What We Mean by ``Architecture''}
+
+Here, \emph{architecture} means: (a) how many ``steps'' or ``modules'' the system has, (b) what each step does, (c) where the \textbf{prompt} lives, and (d) how data flows from input (PDF) to output (interpretation). We keep it simple so that when we report ``better prompts $\to$ better results,'' there is no ambiguity about what changed.
+
+\subsection{The Simplest Picture: One Module, One Prompt}
+
+The most conservative design is \textbf{one LLM call with one system prompt}. Input: the document (as images or as extracted text, depending on what we decide) plus the task description. Output: the interpretation (e.g.\ structured fields, or answers to questions). The \textbf{only} thing we optimize is that single system prompt. Any improvement in the metric is then unambiguously ``better prompt.''
+
+\textbf{Why start with one module:} So we don't have to argue about which module's prompt caused the gain. One prompt, one delta. Later we can split into multiple modules (e.g.\ ``describe document'' then ``fill fields'') if we want to study \emph{which} part of the instruction benefits most from optimization---but that's a second phase.
+
+\subsection{Where the Prompt Lives and What It Contains}
+
+The prompt is the \textbf{system (or instruction) text} we send to the LLM before we send the actual document. It should include:
+
+\begin{itemize}  \item \textbf{What the document is:} e.g.\ a repair order with sections (ASI, BWO, CSI, JSI, WSI, ISI) and common header fields (dealer, vehicle, dates, RO number, VIN, etc.), as in the schema they provided.
+  \item \textbf{What we want the LLM to do:} e.g.\ ``Extract the following fields from the header,'' or ``Answer the following question about this document.''
+  \item \textbf{How we want the output:} e.g.\ JSON with specific keys, or short answers.
+\end{itemize}
+
+We do \emph{not} change the model, the document encoding, or the evaluation logic when we ``optimize''; we only change this text. So the architecture must clearly separate ``prompt text'' from ``model'' and ``evaluation.''
+
+\subsection{Optional: Multiple Modules (Later)}
+
+If we later split into multiple steps (e.g.\ ``first describe each section in natural language, then fill a structured form from that description''), each step can have its own prompt. Then we have multiple prompts to optimize. GEPA-style methods update one module at a time and use feedback to decide \emph{which} module to change. For the first pass, though, a single module keeps the narrative simple: one prompt, one improvement curve.
+
+\subsection{Control Flow in Words}
+
+\begin{itemize}  \item \textbf{Input:} A PDF (or a set of page images) and, optionally, a task (e.g.\ ``extract these fields'' or ``answer this question'').
+  \item \textbf{Step 1:} We convert the PDF into whatever representation the LLM accepts (e.g.\ images per page, or OCR'd text). This conversion is \textbf{fixed}---we do not optimize it. Same conversion for baseline and optimized runs.
+  \item \textbf{Step 2:} We send to the LLM: (system prompt + document representation + optional user query). One or more calls, depending on single- vs multi-module.
+  \item \textbf{Step 3:} We take the LLM output and parse it into our output schema (e.g.\ a dict of fields). Parsing rules are \textbf{fixed} so that, again, the only variable is the prompt.
+  \item \textbf{Output:} Structured interpretation (e.g.\ field values, or answers).
+\end{itemize}
+
+So: \textbf{data in $\to$ fixed encoding $\to$ LLM(prompt, encoded doc) $\to$ fixed parsing $\to$ data out.} The only thing we vary is the content of the prompt.
+
+\subsection{Why This Supports ``Improvement from Prompts''}
+
+Because we fix the model, the document encoding, and the output parser, any change in the evaluation score when we swap prompts is due to the prompt. We are not improving document understanding by adding a better OCR or a bigger model; we are improving it by giving the same model better instructions. That is exactly what stakeholders want to see.
+
+\section{Data --- How We Feed It (Granular)}
+
+\subsection{What Data We Have}
+
+\begin{itemize}  \item \textbf{Schema / spec:} \texttt{overview.pdf} describes the repair-order document type---section types (ASI, BWO, CSI, JSI, WSI, ISI) and common header fields. This is our \textbf{reference for what ``correct'' looks like} and what we should ask the LLM to produce.
+  \item \textbf{Sample documents:} Several PDFs (e.g.\ 201414, 678856, \ldots) that are real (or realistic) repair orders. They appear to be image-based (no extractable text), so the LLM will need to work from \textbf{images} (or we add a fixed OCR step and feed text; either way, we keep that choice fixed for baseline and optimized runs).
+\end{itemize}
+
+\subsection{How We Use the Schema}
+
+The schema tells us (a) what concepts exist in the document (sections, header fields), and (b) what we might ask the agent to extract or reason about. We \textbf{feed} the schema (or a concise summary of it) into the \textbf{system prompt} so the LLM knows the structure. We do not change the schema between baseline and optimized runs; we only change how we \emph{instruct} the LLM to use that schema (wording, emphasis, examples if any). So the schema is part of the ``fixed'' context; the optimizable part is the rest of the prompt (task description, format, reasoning hints).
+
+\subsection{How We Feed the Document}
+
+\begin{itemize}  \item \textbf{Option A (vision):} Send page images to a vision-capable LLM. Same pages, same order, for every run. No change between baseline and optimized prompt.
+  \item \textbf{Option B (OCR):} Run a fixed OCR pipeline on each PDF, get text (or structured blocks), and send that text to the LLM. Again, same OCR for everyone; we only change the prompt.
+\end{itemize}
+
+We pick one and stick to it. The point is: \textbf{document $\to$ same representation every time} so that the only variable is the prompt.
+
+\subsection{What We Need for Evaluation (Ground Truth)}
+
+To compute ``did the LLM interpret this correctly?'' we need \textbf{reference answers} for at least a subset of documents. We create these by hand: for each eval document, we write down the ``correct'' fields or answers (e.g.\ RO number, VIN, open date). This is our ground truth. We do \emph{not} use it to train the model; we use it only to score the LLM's output. So:
+
+\begin{itemize}  \item \textbf{Training/optimization set (for the prompt optimizer):} Documents + ground truth. The optimizer runs the system, sees the score and feedback, and proposes prompt changes. It may use a subset of documents to save cost.
+  \item \textbf{Evaluation set:} Same or a held-out set of documents + ground truth. We report baseline score and optimized score on this set. If we want to be strict, we hold out some documents so the optimizer never sees them---then ``optimized prompt'' is evaluated on truly unseen documents. That would make the ``improvement from prompts'' claim even stronger.
+\end{itemize}
+
+So we feed: (1) schema (in the prompt), (2) document (fixed encoding), (3) optional explicit task (e.g.\ ``extract these fields''). Ground truth is used only by the evaluation and feedback logic, not as part of the prompt at inference time (unless we explicitly design a few-shot setup; that would be a separate choice).
+
+\subsection{Summary of Data Flow}
+
+\begin{itemize}  \item \textbf{Into the prompt:} Schema summary + task description + (if we want) format instructions. All of this is the ``prompt'' we optimize.
+  \item \textbf{Into the model (as content):} The document in a fixed representation (images or OCR text). Same for baseline and optimized.
+  \item \textbf{Into the evaluator:} Model output + ground truth for each eval document. The evaluator returns a number (and optionally text feedback for the optimizer). No data ``leak'' from ground truth into the prompt.
+\end{itemize}
+
+\section{Evaluation Metrics --- How We Introduce Them (Granular)}
+
+\subsection{Why Metrics Matter Here}
+
+We need a \textbf{single, repeatable way} to say ``this run was better than that run.'' The metric is the yardstick. We use it (a) to decide whether a candidate prompt is an improvement (during optimization), and (b) to report ``baseline vs optimized'' at the end. If the metric is not aligned with ``better interpretation,'' we might optimize for the wrong thing. So we choose metrics that reflect ``did the LLM understand and use the document correctly?'' in a way that stakeholders recognize.
+
+\subsection{What We Actually Care About Measuring}
+
+We said they care more about \textbf{prompt-attributable improvement} than about \textbf{absolute accuracy}. So we need:
+
+\begin{enumerate}  \item \textbf{A metric that is sensitive to prompt quality.} If we change the prompt and the LLM does better on the task, the metric should go up. So the metric must depend on the LLM's output (e.g.\ extracted fields, answers) and on ground truth.
+  \item \textbf{A way to isolate the effect of the prompt.} We already did that by fixing model and data; the metric just needs to be computed the same way for baseline and optimized runs.
+  \item \textbf{Optional: interpretable feedback.} For a GEPA-style loop, we want not only a number but also \textbf{text feedback} (e.g.\ ``RO number was wrong; VIN missing'') so the optimizer can propose targeted prompt edits. So we may have: \textbf{numeric score} (for ``better or worse'') and \textbf{feedback text} (for ``what to fix'').
+\end{enumerate}
+
+\subsection{Order of Introduction: Metric First, Then Feedback}
+
+\textbf{Step 1 --- Define the task and the output schema.}\\
+We decide exactly what the LLM must produce (e.g.\ a list of field names and values). That defines ``correct'' vs ``wrong'' per field or per document.
+
+\textbf{Step 2 --- Define a numeric metric $\mu$.}\\
+Examples: (a) exact-match rate per field, (b) F1 over fields, (c) proportion of documents with all key fields correct, (d) a simple rubric (e.g.\ 0/1/2 points per field). We pick one (or a small set) and \textbf{stick to it} for both baseline and optimized runs. We document clearly: ``We measure X; higher is better.''
+
+\textbf{Step 3 --- Implement $\mu$ over (model output, ground truth).}\\
+We write a function that, given the parsed model output and the ground truth for one document, returns a score. We run it on every eval document and aggregate (e.g.\ average). No prompt content here---just comparison of output to reference.
+
+\textbf{Step 4 --- Extend to a feedback function $\mu$f (for optimization).}\\
+If we use a reflective optimizer (GEPA-style), we need more than a number: we need \textbf{why} the score was low or high. So we define $\mu$f that returns (score, feedback\_text). For example: ``Score 0.6. Missing: VIN. Wrong: RO number (expected 201414, got 201415).'' The optimizer uses this text to propose prompt changes. The important part: $\mu$f is derived from the same notion of ``correct'' as $\mu$; we don't change the definition of correct, we just add a textual breakdown.
+
+\subsection{Ensuring Improvement Is Attributable to Prompts}
+
+\begin{itemize}  \item \textbf{Same metric} for baseline and optimized: we report the same $\mu$ (e.g.\ average field accuracy) for both.
+  \item \textbf{Same eval set:} same documents, same ground truth. If we use a held-out set for final reporting, we say so.
+  \item \textbf{Same model and same document encoding:} no change between runs except the prompt.
+  \item \textbf{Same parsing of model output:} we don't ``fix'' the output post hoc for one run and not the other. We parse the raw output the same way and then apply $\mu$.
+\end{itemize}
+
+Under those conditions, any gain in the metric is attributable to the prompt. We can say: ``With the baseline prompt we got X; after prompt optimization we got Y; the gain ($Y - X$) is due to better prompts.''
+
+\subsection{What We Report to Stakeholders}
+
+\begin{itemize}  \item \textbf{Baseline score:} metric $\mu$ on the eval set with the initial, hand-written prompt(s).
+  \item \textbf{Optimized score:} metric $\mu$ on the same set with the evolved prompt(s).
+  \item \textbf{Delta:} improvement (absolute or relative). We emphasize: ``This gain comes from prompt optimization only; same model, same data.''
+  \item Optionally: a few examples where the optimized prompt fixed a mistake the baseline made, to make the story concrete.
+\end{itemize}
+
+We do \emph{not} need to claim ``we achieved 95\% accuracy.'' We claim ``we improved over the baseline by Z\% by evolving the prompt.''
+
+\section{Tying It Together: The Experiment in Plain English}
+
+\begin{enumerate}  \item \textbf{Define the task} using their schema (e.g.\ repair orders): what the LLM must output (fields or answers), and in what format.
+  \item \textbf{Freeze everything except the prompt:} one model, one way of feeding the PDF (vision or OCR), one output parser, one evaluation metric.
+  \item \textbf{Baseline:} write an initial system prompt that describes the schema and the task. Run on the eval set. Record the metric. This is ``baseline LLM'' in their terms---same model, naive instructions.
+  \item \textbf{Optimization loop:} automatically propose prompt changes (e.g.\ via reflection over failures), re-run on the same (or a subset of) documents, keep changes that improve the metric. Use the same $\mu$ (and optionally $\mu$f) throughout.
+  \item \textbf{Final comparison:} run the best-evolved prompt on the eval set. Report baseline vs optimized metric. The difference is the ``improvement attributed to better prompts.'' The end goal---interpreting a general PDF (like their schema) better than a baseline LLM---is demonstrated by that improved metric, with the only change being the prompt.
+\end{enumerate}
+
+\section{Initial Steps --- Narrative Checklist (No Code Yet)}
+
+\begin{itemize}  \item[\fbox{\phantom{x}}] \textbf{Schema:} Read and summarize the overview/schema (sections, fields). Write a short ``document spec'' we can paste into the system prompt.
+  \item[\fbox{\phantom{x}}] \textbf{Samples:} Inspect 1--2 sample PDFs. Confirm they match the schema and note how we will feed them (images vs OCR). Decide and document the choice.
+  \item[\fbox{\phantom{x}}] \textbf{Task:} Write one paragraph: ``The agent's job is to \ldots Output format: \ldots'' This is the task we will score.
+  \item[\fbox{\phantom{x}}] \textbf{Output schema:} List the exact keys (or question IDs) we will extract. This defines ``ground truth'' and ``model output'' shape.
+  \item[\fbox{\phantom{x}}] \textbf{Ground truth:} Manually fill 5--10 eval documents with correct values. Store them in a fixed format (e.g.\ one JSON per document).
+  \item[\fbox{\phantom{x}}] \textbf{Metric $\mu$:} Choose one primary metric (e.g.\ field-level exact match rate). Write in English how it is computed. Later we implement it.
+  \item[\fbox{\phantom{x}}] \textbf{Feedback $\mu$f (if needed):} Describe in English what text we want back when the model fails (e.g.\ ``list wrong/missing fields''). This will drive prompt updates.
+  \item[\fbox{\phantom{x}}] \textbf{Baseline prompt:} Write the first version of the system prompt (schema + task + format). This is what we will compare against.
+  \item[\fbox{\phantom{x}}] \textbf{Architecture doc:} One page: ``We have one module. Input is \ldots Output is \ldots The only thing we change is the prompt. Metric is \ldots'' So the whole experiment is reproducible on paper.
+\end{itemize}
+
+Once these are done, we have a thorough, granular plan. Building (data loading, API calls, eval script, optimizer loop) can follow this plan step by step.
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+\section{References}
+
+\begin{itemize}  \item \textbf{Project Plan - Draft.pdf} --- scope (no RL, no retraining), tools, milestones.
+  \item \textbf{GEPA\_paper.pdf} --- compound system, reflective prompt evolution, Pareto selection, feedback function $\mu$f.
+  \item \textbf{Pin --- Trace as skeleton:} \texttt{PIN\_TRACE\_SKELETON.md} (Microsoft Trace: \url{https://github.com/microsoft/Trace} --- PyTorch-like optimization loop for agents; possible implementation skeleton.)
+  \item GEPA code: \url{https://github.com/gepa-ai/gepa}
+\end{itemize}
+
+\end{document}
