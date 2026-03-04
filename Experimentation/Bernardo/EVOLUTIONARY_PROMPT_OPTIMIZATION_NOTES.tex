@@ -1,0 +1,178 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\title{Notes \& Reflections: Evolutionary Prompt Optimization (ICLR 2025 Workshop)}
+\author{BMW $\times$ MIT GenAI Lab\\Literature notes}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{0.5em}
+
+\textbf{Paper:} Evolutionary Prompt Optimization Discovers Emergent Multimodal Reasoning Strategies in Vision-Language Models\\
+\textbf{Venue:} ICLR 2025 Workshop on Reasoning and Planning for LLMs. arXiv:2503.23503.\\
+\textbf{Authors:} Sid Bharthulwar, John Rho, Katrina Brown (Harvard College).\\
+\textbf{Scope of notes:} Full paper.
+
+\vspace{0.5em}
+\hrule
+\vspace{0.5em}
+
+\section{Why This Paper Matters for Our Project}
+
+This paper is directly relevant to \textbf{prompt optimization in a vision-in-the-loop setting}. The authors optimize \textbf{system prompts} for \textbf{vision-language models (VLMs)} so that the model performs better on visual reasoning tasks---\textbf{without retraining}. That aligns with our goal: improve document interpretation by evolving the prompt while keeping the model and (in our case) the document encoding fixed. They use an \textbf{evolutionary algorithm} (binary tournament, LLM-guided mutation) rather than GEPA-style reflection, but the high-level idea---\textbf{inference-time prompt evolution for a model that sees both visual and textual input}---fits our setting.
+
+Key hooks: (1) \textbf{Sample efficiency:} strong gains with as few as \textbf{20 labeled examples} per subtask. (2) \textbf{Emergent tool use:} evolution discovers that suggesting tool calls (e.g.\ Python for cropping, segmentation) improves performance. (3) \textbf{Fitness with an LLM critic} (auxiliary fitness) acts as a regularizer---analogous to GEPA's $\mu$f guiding the search.
+
+\section{Notes by Section}
+
+\subsection{Abstract}
+
+\begin{itemize}
+  \item \textbf{What the paper does:} A framework for \textbf{optimizing prompts in vision-language models} to elicit \textbf{multimodal reasoning without model retraining}. Uses an \textbf{evolutionary algorithm}; improves over baselines that lack evolution-style ``survival of the fittest'' iteration.
+  \item \textbf{Main discovery:} The model \textbf{independently discovers} that breaking down visually complex tasks (e.g.\ via a \textbf{tool call} to a Python interpreter for cropping, segmentation) improves performance. \textbf{System-level XML \texttt{<tool>...</tool>} tags} flag Python interpreter access; the same LLM can generate programs. This ``tool synthesis'' is crystallized into a system-level prompt for inference.
+  \item \textbf{Results:} Up to \textbf{$\approx$ 50\% relative improvement} on select visual tasks. Benchmarks: MathVista, M3CoT, GeoBench-VLM. Evolved prompts \textbf{generalize} zero-shot.
+  \item \textbf{Takeaway for us:} Inference-time prompt evolution works for VLMs; evolutionary search can discover \textbf{emergent}, interpretable strategies (including tool use). Strong sample efficiency is relevant to our constrained document setting.
+\end{itemize}
+
+\subsection{Introduction (Section 1)}
+
+\begin{itemize}
+  \item \textbf{Gap:} CoT and related methods for VLMs often need \textbf{retraining or large curated rationales}. Prompt optimization (e.g.\ Promptbreeder, evolutionary methods) has been studied mainly in \textbf{text-only} settings; application to \textbf{vision-language} tasks is understudied.
+  \item \textbf{Contribution:} Evolutionary prompt optimization \textbf{tailored for VLMs}; no retraining. Evolution discovers \textbf{emergent behaviors}: recursive tool usage, hierarchical image partitioning, dynamic-programming--like counting. \textbf{20 labeled examples per subtask} suffice; results generalize.
+  \item \textbf{Takeaway for us:} Our document pipeline (PDF $\to$ encoding $\to$ LLM with prompt $\to$ structured output) is a form of vision-language task. Their finding that \textbf{prompt evolution alone} can yield large gains supports our hypothesis.
+\end{itemize}
+
+\subsection{Related Work (Section 2)}
+
+\begin{itemize}
+  \item CoT in VLMs often requires distillation, RL, or fine-tuning. This approach is \textbf{purely inference-time}.
+  \item Evolutionary prompt optimization (EvoPrompt, Promptbreeder) has been mostly \textbf{text-centric}. This paper extends to \textbf{multimodal} and shows evolution can discover \textbf{novel reasoning paradigms} (e.g.\ tool synthesis).
+\end{itemize}
+
+\subsection{Methodology (Section 3)}
+
+\subsubsection{Problem Formulation}
+
+\begin{itemize}
+  \item \textbf{Setup:} Task has question set $Q$. System prompt $p \in P$ is prepended to each question. Input: $p \oplus q$.
+  \item \textbf{Objective:} $p^* = \arg\max_{p \in P} \mathbb{E}_{q \in Q}[\mathrm{Score}(p \oplus q)]$. Score $\in [0, 100]$; task-specific.
+  \item \textbf{Train/test:} $Q$ split into $A$ (training) and $B$ (test). $|A|$ small (e.g.\ 20), $|B| \gg |A|$. Small $A$ acts as ``few-shot training set'' for evolution.
+  \item \textbf{Takeaway for us:} Our analogue: $Q$ = (document, ground-truth) pairs; $p$ = system prompt; Score = our metric. We optimize $p$ on a small eval set and care about generalization.
+\end{itemize}
+
+\subsubsection{Evolutionary Algorithm Design}
+
+\begin{itemize}
+  \item \textbf{Three spaces:} Task prompt space $P$, mutation prompt space $M$, meta-mutation space $H$.
+  \item \textbf{Binary tournament:} Each generation: sample two prompts $p_1, p_2$; \textbf{winner} = higher fitness, \textbf{loser} = lower. Sample $m \sim M$. \textbf{Mutated winner:} $p'_w = \mathrm{LLM}(m \oplus p_w)$. Replace loser with $p'_w$. Repeat for $G$ generations.
+  \item \textbf{Mutation operators:} First-order (task): $p' = L(m \oplus p)$. Zero-order (task): $p'' = L(\textrm{``100 hints''} \oplus D)$ from problem description $D$. Similar for mutation prompts ($M$, $H$). They use \textbf{vision-specific initial populations}.
+  \item \textbf{Takeaway for us:} We could adopt this evolutionary loop as an \textbf{alternative or complement} to GEPA-style reflection.
+\end{itemize}
+
+\subsubsection{Fitness Evaluation}
+
+\begin{itemize}
+  \item \textbf{Fitness:} $F(p) = (1 - \lambda) F_{\mathrm{task}}(p) + \lambda F_{\mathrm{aux}}(p)$.
+  \item $F_{\mathrm{task}}(p)$: Average \textbf{Score} on a \textbf{minibatch} $C \subset A$ of size $k$.
+  \item $F_{\mathrm{aux}}(p)$: \textbf{LLM-based critic}---evaluates coherence, adherence of the prompt. Acts as \textbf{regularizer}; improves sample efficiency.
+  \item $\lambda = 0.25$; $F_{\mathrm{aux}}$ scaled to [0, 100].
+  \item \textbf{Takeaway for us:} Combining task metric with LLM critique is analogous to GEPA's $\mu$f (score + text feedback). We could define $F_{\mathrm{aux}}$ from our field-level feedback text or an LLM judge.
+\end{itemize}
+
+\subsubsection{Evolutionarily Emergent Tool Synthesis}
+
+\begin{itemize}
+  \item \textbf{Discovery:} Evolved prompts often \textbf{suggest modifying and re-ingesting the image} (crop, segment, brightness). No predefined tool set; evolution produces \textbf{natural-language tool descriptions} turned into code.
+  \item \textbf{Mechanism:} $L_1$ (main VLM) outputs text with \textbf{$\langle$tool$\rangle \tau_i \langle$/tool$\rangle$} tags. $L_2$ (interpreter): $\tau_i \to$ executable Python $c_i$. Composed transform: $T(x) = \mathrm{eval}(c_k \circ \cdots \circ c_1)(x)$. Tool outputs can be \textbf{fed back into $L_1$} (recursive refinement).
+  \item \textbf{Takeaway for us:} We keep encoding (vision/OCR) fixed. This paper suggests evolved prompts can ``ask for'' tool-like preprocessing. We could (a) only evolve the extraction prompt, or (b) allow evolved prompts to \textbf{invoke} a fixed set of tools (e.g.\ ``run OCR on region X'').
+\end{itemize}
+
+\subsection{Results (Section 4)}
+
+\begin{itemize}
+  \item \textbf{Model:} OpenAI 4o mini. \textbf{Baselines:} no CoT, +CoT, +PromptBreeder. \textbf{+Ours:} evolutionary method; \textbf{+Tools:} with tool interpreter.
+  \item \textbf{MathVista:} Visual QA 49.5 $\to$ 53.3 (+Ours) $\to$ 60.5 (+Tools). Similar gains on Figure QA, Math Word Problem. \textbf{M3CoT / GeoBench-VLM:} large gains with +Tools (e.g.\ Damaged Building Count 21.5 $\to$ 32.1).
+  \item \textbf{Emergent behaviors:} Hierarchical decomposition, ``mental simulation'' for physics, image partitioning---\textbf{without explicit programming}.
+\end{itemize}
+
+\subsection{Generalization (Section 4.2)}
+
+\begin{itemize}
+  \item High-fitness prompts found with \textbf{20--30\% of dataset} (often $<$ 20 samples). Attributed to \textbf{LLM-augmented fitness} ($F_{\mathrm{aux}}$) as regularizer.
+  \item \textbf{Takeaway for us:} Few labeled examples suffice for prompt optimization to generalize.
+\end{itemize}
+
+\section{Key Takeaways for Our Scope}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Paper concept} & \textbf{Our use case} \\
+\midrule
+VLM + system prompt & Document $\to$ (vision/OCR) $\to$ LLM(prompt) $\to$ structured output. \\
+Task instance $q$ & One (document, ground truth). \\
+Score($p \oplus q$) & Our metric (e.g.\ field-level accuracy). \\
+Training set $A$, test $B$ & Small eval set for evolution; report generalization. \\
+Binary tournament evolution & Alternative to GEPA: mutate winner, replace loser. \\
+Fitness $F = (1-\lambda)F_{\mathrm{task}} + \lambda F_{\mathrm{aux}}$ & We have task metric; $F_{\mathrm{aux}}$ = LLM critique or $\mu$f. \\
+Emergent tool synthesis & Evolved prompts suggest $\langle$tool$\rangle$; we could keep tools fixed or allow preprocessing. \\
+Sample efficiency & 20--30\% of data, $<$ 20 samples---aligns with our setting. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Prompt optimization ``within'' the vision model:} The paper does \textbf{not} fine-tune the vision encoder. They optimize the \textbf{system/task prompt} that the VLM uses. So ``prompt optimization within the vision model'' = prompt optimization for a model that consumes visual input---same as our setup.
+
+\textbf{Evolution vs GEPA:} This paper uses \textbf{evolutionary algorithms} (tournament, mutation prompts); GEPA uses \textbf{reflection} + \textbf{Pareto} selection. Both are inference-time, no weight updates. We could run both and compare.
+
+\section{How This Flow Maps to Our Document-Interpretation Use Case}
+
+Below is a diagram of how we could apply \textbf{evolutionary prompt optimization} to our setting: document in $\to$ agent (trainable prompt, fixed encoding) $\to$ output $\to$ fitness (task + auxiliary) $\to$ evolution (tournament, mutation) $\to$ new prompt $\to$ repeat.
+
+\vspace{1em}
+\begin{center}
+\fboxsep=4pt
+\fboxrule=0.4pt
+\begin{tabular}{@{}c@{}}
+  \textbf{Input} \\
+  \fbox{PDF / document} \quad \fbox{Ground truth} \\[0.8em]
+  $\downarrow$ \\[0.4em]
+  \textbf{Our compound system} \\
+  \fbox{Task prompt $p$} $\to$ \fbox{Encoding} $\to$ \fbox{LLM} $\to$ \fbox{Structured output} \\[0.8em]
+  $\downarrow$ \\[0.4em]
+  \textbf{Fitness evaluation} \\
+  \fbox{$F_{\mathrm{task}}$: Score on minibatch} \quad \fbox{$F_{\mathrm{aux}}$: LLM critic} \\[0.8em]
+  $\downarrow$ \\[0.4em]
+  \textbf{Evolutionary optimizer} \\
+  Population $\to$ Binary tournament (winner/loser) $\to$ Mutate winner: LLM($m \oplus p_w$) $\to$ Replace loser \\
+  $\to$ (best prompt back to agent) \\[0.4em]
+\end{tabular}
+\end{center}
+\vspace{0.5em}
+
+\textbf{In words:} (1) Document and ground truth enter the agent; current \textbf{task prompt} $p$ and \textbf{fixed encoding} produce \textbf{structured output}. (2) \textbf{Fitness:} $F_{\mathrm{task}}$ (e.g.\ field accuracy on minibatch) and $F_{\mathrm{aux}}$ (LLM critique or feedback); $F = (1-\lambda)F_{\mathrm{task}} + \lambda F_{\mathrm{aux}}$. (3) \textbf{Evolution:} population of prompts; each generation: binary tournament (two prompts, winner = higher $F$, loser = lower $F$); mutate winner with mutation prompt $m$; replace loser with mutated winner. (4) Repeat for $G$ generations; use best prompt for evaluation and comparison to baseline.
+
+\vspace{1em}
+\hrule
+\vspace{0.5em}
+
+\section{References}
+
+\begin{itemize}
+  \item \textbf{Paper:} Evolutionary Prompt Optimization Discovers Emergent Multimodal Reasoning Strategies in Vision-Language Models. ICLR 2025 Workshop on Reasoning and Planning for LLMs. arXiv:2503.23503.
+  \item \textbf{Our docs:} \texttt{ARCHITECTURE\_AND\_INITIAL\_STEPS.md} (Trace + GEPA), \texttt{GEPA\_PAPER\_NOTES.md}. This paper offers an \textbf{evolutionary} alternative for prompt optimization in a vision/document setting.
+\end{itemize}
+
+\end{document}

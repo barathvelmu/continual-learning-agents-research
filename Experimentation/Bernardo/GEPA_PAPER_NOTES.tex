@@ -1,0 +1,178 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\title{Notes \& Reflections: GEPA Paper (ICLR 2026)}
+\author{BMW $\times$ MIT GenAI Lab\\Literature notes}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{0.5em}
+
+\textbf{Paper:} GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning\\
+\textbf{Scope of notes:} Through Section 3 (approx.\ page 9).
+
+\vspace{0.5em}
+\hrule
+\vspace{0.5em}
+
+\section{Why This Paper Matters for Our Project}
+
+GEPA is directly relevant to our scope: we want to \textbf{optimize system prompts} for a document-interpretation agent \textbf{without retraining} and to show \textbf{improvement attributable to better prompts}. GEPA does exactly that---evolving prompts via natural-language reflection and Pareto-based search---and is highly \textbf{sample-efficient}, which fits our constrained setting. We plan to use GEPA (or a GEPA-style optimizer) together with Trace as the execution harness.
+
+\section{Notes by Section}
+
+\subsection{Abstract}
+
+\begin{itemize}
+  \item \textbf{What GEPA is:} A \textbf{prompt optimizer} (not weight optimizer) that uses \textbf{natural language reflection} to learn from trial and error. Works on any AI system with one or more LLM prompts.
+  \item \textbf{Mechanism:} Samples \textbf{trajectories} (reasoning, tool calls, outputs), \textbf{reflects} on them in natural language to diagnose issues and propose prompt updates, and uses the \textbf{Pareto frontier} of its own attempts to combine good ideas and avoid local optima.
+  \item \textbf{Results:} Much more \textbf{sample-efficient} than RL (GRPO): e.g.\ up to \textbf{35$\times$ fewer rollouts}, \textbf{+6\% average} over GRPO, up to \textbf{+20\%} on some tasks. Also beats \textbf{MIPROv2} (prior leading prompt optimizer) by $>$10\%.
+  \item \textbf{Takeaway for us:} ``Few rollouts $\to$ large quality gain'' and ``interpretable, language-based learning'' align with our goal of showing prompt-driven improvement without huge compute.
+\end{itemize}
+
+\subsection{Introduction (Section 1)}
+
+\begin{itemize}
+  \item \textbf{Problem with RL (e.g.\ GRPO):} Treats the metric as a \textbf{scalar reward} and uses policy gradients. In practice needs \textbf{tens of thousands} (often hundreds of thousands) of rollouts to fit new tasks. Becomes a bottleneck when tool calls are expensive or we can't fine-tune.
+  \item \textbf{Key observation:} Rollouts can be \textbf{serialized into natural-language traces} (instructions, reasoning, tool calls, and even the environment's text before it becomes a number, e.g.\ compiler errors). LLMs can \textbf{read and reason about} these traces. So learning in \textbf{language} (reflection) can use each rollout more effectively than a single scalar.
+  \item \textbf{What GEPA does:} \textbf{Reflective prompt evolution} + \textbf{multi-objective (Pareto) search}. Mutates prompts using natural-language feedback from rollouts; keeps a \textbf{Pareto front} (best per instance) instead of only the global best, to \textbf{avoid local optima} and improve generalization.
+  \item \textbf{Evaluation:} Multi-hop QA (HotpotQA), Math (AIME, LiveBench), instruction following (IFBench), privacy delegation (PUPA), retrieval verification (HoVer); open (Qwen3 8B) and proprietary (GPT-4.1 Mini) models.
+  \item \textbf{Takeaway for us:} Our ``feedback function $\mu$f'' that returns \textbf{score + text} (e.g.\ ``RO number wrong; VIN missing'') is exactly the kind of signal GEPA is designed to consume. We don't need RL; we need good traces and good text feedback.
+\end{itemize}
+
+\subsection{Problem Statement (Section 2)}
+
+\begin{itemize}
+  \item \textbf{Compound AI system:} $\Phi = (M, C, X, Y)$. $M$ = modules (each $M_i$ has prompt $\pi_i$, weights $\theta_i$, input/output schemas). $C$ = control flow (how modules are called, in what order). $X$, $Y$ = global input/output. Covers agents, multi-agent systems, ReAct, etc.
+  \item \textbf{Learnable parameters:} Prompts $\Pi$ and optionally weights $\Theta$. For GEPA, \textbf{only $\Pi$} is optimized; $\Theta$ is fixed.
+  \item \textbf{Task instance:} $(x, m)$ with $x$ = input, $m$ = metadata (e.g.\ gold answers, rubrics). Output $y = \Phi(x)$; metric $\mu(y, m) \in [0, 1]$.
+  \item \textbf{Optimization goal:} Maximize expected $\mu$ over the task distribution, with a \textbf{rollout budget $B$}. So the challenge is \textbf{sample-efficient} optimization: get the most out of each rollout.
+  \item \textbf{Takeaway for us:} Our system is a compound system (e.g.\ document $\to$ encoding $\to$ LLM with prompt $\to$ structured output). Our ``task instance'' is (document, ground truth); $\mu$ is our metric; we have a limited budget of runs, so sample efficiency matters.
+\end{itemize}
+
+\subsection{GEPA: Reflective Prompt Evolution (Section 3)}
+
+\textbf{Inputs:} System $\Phi$ with initial prompts, dataset $D_{\mathrm{train}}$, metric $\mu$, \textbf{feedback function $\mu$f}, rollout budget $B$. GEPA optimizes \textbf{only prompts} $\Pi$; weights $\Theta$ fixed.
+
+\subsubsection{Genetic optimization loop}
+
+\begin{itemize}
+  \item \textbf{Candidate pool $P$:} Starts with the base system. Each candidate is one full prompt set $\langle \Pi, \Theta_{\mathrm{frozen}} \rangle$.
+  \item \textbf{Loop:} While budget remains: (i) \textbf{Select} a candidate (from Pareto frontier). (ii) \textbf{Propose} a new candidate by \textbf{reflective mutation} (or crossover/merge). (iii) Run on a \textbf{minibatch}, get scores and feedback. (iv) If the new candidate \textbf{improves} on the minibatch, add it to $P$ and evaluate on $D_{\mathrm{pareto}}$. (v) Repeat.
+  \item \textbf{Genetic idea:} New prompts are \textbf{derived from} existing ones and inherit ``lessons''; knowledge accumulates along the tree.
+\end{itemize}
+
+\subsubsection{Reflective prompt mutation}
+
+\begin{itemize}
+  \item \textbf{Execution traces:} When we run $\Phi$, we get \textbf{traces} (per-module inputs, outputs, reasoning). These are in natural language.
+  \item \textbf{Feedback function $\mu$f:} Extends the metric $\mu$. Returns not only a \textbf{score} but \textbf{text feedback} (e.g.\ which rubrics failed, compiler errors). GEPA (and the reflection LM) use this text to attribute success/failure to specific modules and to propose \textbf{targeted} prompt edits.
+  \item \textbf{Process:} (1) Run candidate on minibatch; collect traces. (2) Call $\mu$f $\to$ (score, feedback\_text). (3) \textbf{Select one module} (e.g.\ round-robin). (4) \textbf{Reflection LM} is given: current prompt for that module, trajectory, score, feedback. (5) It \textbf{proposes a revised prompt}. (6) New candidate = copy of current with that module's prompt replaced. (7) Re-run on minibatch; if score improves, keep.
+  \item \textbf{Evaluation traces:} The paper stresses that \textbf{evaluation} can also produce text (e.g.\ ``expected X, got Y'') before the scalar reward. Using that text in $\mu$f makes reflection more informative.
+\end{itemize}
+
+\subsubsection{Pareto-based candidate selection}
+
+\begin{itemize}
+  \item \textbf{Problem:} Always mutating the ``best'' candidate can trap the optimizer in a \textbf{local optimum}.
+  \item \textbf{Idea:} For each \textbf{task instance} $i$, record which candidates achieved the \textbf{best score} on $i$. The \textbf{Pareto frontier} is the set of candidates that are best on at least one instance. Remove candidates that are \textbf{strictly dominated}. From the remaining set, \textbf{sample} a candidate to mutate, e.g.\ with probability proportional to how many instances it ``wins'' on.
+  \item \textbf{Effect:} Encourages \textbf{diversity} and helps escape local optima.
+\end{itemize}
+
+\subsubsection{Summary of Section 3}
+
+\begin{itemize}
+  \item \textbf{Feedback function $\mu$f:} Must return (score, feedback\_text). We already plan this for our field-level evaluation (``RO number wrong; VIN missing'').
+  \item \textbf{Reflection:} An LLM reads (prompt, trace, score, feedback) and outputs a new prompt. No gradients; pure language.
+  \item \textbf{Pareto:} We maintain a pool of ``good'' prompts (best per instance) and sample from it to mutate. Fits our setting if we have multiple eval documents (each document = one ``instance'').
+\end{itemize}
+
+\section{Key Takeaways for Our Scope}
+
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{GEPA concept} & \textbf{Our use case} \\
+\midrule
+Compound system $\Phi$ & Document $\to$ (vision/OCR or fixed encoding) $\to$ LLM(prompt) $\to$ structured fields. \\
+Task instance $(x,m)$ & One document + its ground-truth fields. \\
+Metric $\mu$ & Our evaluation (e.g.\ field-level accuracy). \\
+\textbf{Feedback $\mu$f} & Same $\mu$ plus \textbf{text}: e.g.\ ``Score 0.6. Wrong: RO number\ldots Missing: VIN.'' \\
+Rollout & One run of our agent on one (or a minibatch of) document(s). \\
+Reflective mutation & GEPA proposes a new system prompt from (current prompt, trace, score, $\mu$f output). \\
+Pareto selection & Over our eval documents: keep prompts that are ``best'' on at least one document. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{Sample efficiency:} We likely have limited labeled documents and limited API budget. GEPA's ``few rollouts, big gain'' is exactly what we need.
+  \item \textbf{No RL, no fine-tuning:} GEPA only updates prompts. Aligns with project constraints.
+  \item \textbf{Interpretability:} The learned prompts are human-readable (see Figure 2 in the paper). Good for stakeholder storytelling.
+\end{itemize}
+
+\section{How GEPA-Style Flow Maps to Our Document-Interpretation Use Case}
+
+Below is a diagram of how the \textbf{information flows} when we apply a GEPA-style optimizer to our setting: document in $\to$ agent (with trainable prompt) $\to$ output $\to$ evaluation ($\mu$ and $\mu$f) $\to$ reflection $\to$ prompt update $\to$ repeat.
+
+\vspace{1em}
+\begin{center}
+\fboxsep=4pt
+\fboxrule=0.4pt
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}c@{}}
+  \textbf{Input} \\
+  \fbox{PDF / document} \quad \fbox{Ground truth} \\[0.8em]
+  $\downarrow$ \\[0.4em]
+  \textbf{Our compound system $\Phi$} \\
+  \fbox{Trainable prompt} $\to$ \fbox{Encoding} $\to$ \fbox{LLM} $\to$ \fbox{Structured output} \\[0.8em]
+  $\downarrow$ \\[0.4em]
+  \textbf{Evaluation} \\
+  \fbox{Metric $\mu$} \quad \fbox{Feedback $\mu$f} \quad (from Ground truth + Structured output) \\[0.8em]
+  $\downarrow$ \\[0.4em]
+  \textbf{GEPA-style optimizer} \\
+  \fbox{Execution trace} $\to$ \fbox{Reflection LM} $\to$ \fbox{New prompt} $\to$ (back to Trainable prompt) \\
+  \fbox{Pareto pool} $\to$ \fbox{Select} $\to$ (choose candidate to mutate) \\[0.4em]
+\end{tabular}
+\end{center}
+\vspace{0.5em}
+\noindent\textit{Flow:} Input (PDF, ground truth) $\to$ Agent (trainable prompt, encoding, LLM $\to$ structured output) $\to$ Evaluation ($\mu$, $\mu$f) $\to$ GEPA-style (trace $\to$ reflection $\to$ new prompt $\to$ back to agent; Pareto pool $\to$ select candidate).
+\vspace{0.5em}
+
+\textbf{In words:}
+
+\begin{enumerate}
+  \item \textbf{Document} (and optional ground truth for eval) enters the \textbf{agent}.
+  \item The agent uses a \textbf{trainable prompt} (e.g.\ in a Trace node) and an \textbf{encoding} (vision or OCR); the \textbf{LLM} produces \textbf{structured output} (e.g.\ RO number, VIN, dates).
+  \item \textbf{Evaluation:} We compute $\mu$ (score) and $\mu$f (score + text feedback, e.g.\ ``RO number wrong; VIN missing'').
+  \item \textbf{Trace:} We record which prompt was used and the LLM's inputs/outputs.
+  \item \textbf{Reflection:} A reflection LM takes (current prompt, trace, score, $\mu$f text) and \textbf{proposes a new prompt}.
+  \item \textbf{Pareto (optional):} We keep a pool of prompts that are ``best'' on at least one document; we \textbf{select} from this pool which prompt to mutate next.
+  \item The \textbf{new prompt} is written into the trainable node; we \textbf{repeat} until the budget is exhausted.
+\end{enumerate}
+
+This matches the GEPA algorithm (Section 3 / Figure 4) with our document pipeline as $\Phi$ and our $\mu$f as the feedback function.
+
+\vspace{1em}
+\hrule
+\vspace{0.5em}
+
+\section{References}
+
+\begin{itemize}
+  \item \textbf{Paper:} GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning (ICLR 2026, Oral). arXiv:2507.19457.
+  \item \textbf{Code:} \url{https://github.com/gepa-ai/gepa}
+  \item \textbf{Our docs:} \texttt{ARCHITECTURE\_AND\_INITIAL\_STEPS.md} (Trace + GEPA), \texttt{PIN\_TRACE\_SKELETON.md}.
+\end{itemize}
+
+\end{document}
