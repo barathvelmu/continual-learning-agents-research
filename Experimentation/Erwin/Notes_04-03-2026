@@ -1,0 +1,23 @@
+                Document Image
+                       │
+                       ▼
+              Vision Model (LLaVA)
+                Vision Prompt
+                       │
+                       ▼
+                Extracted Text
+                       │
+                       ▼
+                LLM Extraction Agent
+                   Agent Prompt
+                       │
+                       ▼
+                 Structured Output
+                       │
+                       ▼
+                  Evaluation
+                       │
+                       ▼
+              Prompt Optimization Agent
+                       │
+                updates prompts
