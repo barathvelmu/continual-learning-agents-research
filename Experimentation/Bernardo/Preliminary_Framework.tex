@@ -1,0 +1,159 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\title{Preliminary Framework\\Automated, Self-Optimizing Work Order System}
+\author{BMW $\times$ MIT GenAI Lab\\Continual Learning Agents Research}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{0.5em}
+\hrule
+\vspace{0.8em}
+
+This proposal outlines a multi-stage approach to building an automated, self-optimizing work order system. It begins with a sophisticated ``Active Extraction'' layer for Computer Vision (CV) and then compares two high-level optimization frameworks to drive continuous improvement.
+
+\section{Stage 1: CV Active Extraction (The Intake Layer)}
+
+To ensure high-fidelity data from your PDF work orders, we adopt the ``active'' intuition from the Evolutionary Prompt Optimization (EPO) paper.
+
+\subsection{The Strategy (Full CV Active Extraction)}
+
+Instead of a single ``passive'' scan, the CV model acts as an agent. Following the paper's findings, the system prompt is optimized to discover and use \textbf{Emergent Multimodal Strategies}:
+
+\begin{itemize}
+  \item \textbf{Hierarchical Partitioning:} The model first identifies regions (Header, Parts Table, Footer) and then ``zooms in'' on them sequentially.
+  \item \textbf{Tool-Augmented Perception:} Using the \texttt{<TOOL>...</TOOL>} tag structure found in the paper, the model can trigger Python scripts to crop, segment, or adjust the contrast of specific areas (e.g.\ a blurry serial number) to ensure the extraction is accurate before it ever reaches the agent.
+\end{itemize}
+
+\subsection{Alternative Approach for Initial Implementation (Recommended Starting Point)}
+
+For a practical starting point, we may begin with a \textbf{simpler intake layer} rather than the full CV active extraction above:
+
+\begin{itemize}
+  \item \textbf{Vision model with simple instructions:} Use a vision-capable model (e.g.\ GPT-4V, Claude, or an open VLM) with straightforward instructions to extract the required fields from the document. The same prompt and encoding are used for every run; only the downstream agent prompt is optimized.
+  \item \textbf{Fixed OCR (or similar):} Alternatively, use a \textbf{fixed OCR} pipeline (or a fixed layout analysis tool) that converts the PDF to text or structured regions once, with \emph{no} optimization of the extraction step. The output is then fed to the LLM agent whose \emph{system prompt} we optimize (Trace + GEPA or DSPy + MIPROv2).
+\end{itemize}
+
+This alternative keeps the intake \textbf{fixed} so that any improvement we measure is attributable to the optimized agent prompt, which aligns with the project goal of showing ``improvement from better prompts.'' The full CV active extraction (hierarchical partitioning, tool-augmented perception, EPO-style prompt evolution for the vision agent) remains a possible later phase.
+
+\textbf{Note on the CV active extraction:} The suggested CV active extraction approach described above \textbf{does not currently have a public repository or codebase}. The Evolutionary Prompt Optimization paper indicates a possible approach and can be consulted for design (e.g.\ emergent tool synthesis, XML \texttt{<tool>} tags, evolution over vision-specific prompts). Implementation would need to be developed or adapted from related work (e.g.\ EvoPrompt for evolutionary loops, or fixed vision APIs) if we pursue that direction later.
+
+\section{Literature \& Notes (Reference for Deeper Understanding)}
+
+The project includes structured \textbf{notes on key papers} in the \texttt{Literature\_and\_notes} folder (and in \texttt{Experimentation/Bernardo} where applicable). These can be referenced for a better understanding when relevant:
+
+\begin{itemize}
+  \item \textbf{TRACE\_NOTES.pdf} --- Trace (NeurIPS 2024): execution traces, OPTO, trainable nodes, OptoPrime; how Trace fits our document-interpretation pipeline.
+  \item \textbf{GEPA\_PAPER\_NOTES.pdf} --- GEPA (ICLR 2026): reflective prompt evolution, Pareto selection, feedback function $\mu$f; mapping to our use case.
+  \item \textbf{EVOLUTIONARY\_PROMPT\_OPTIMIZATION\_NOTES.pdf} --- Evolutionary Prompt Optimization (ICLR 2025 Workshop): vision-language prompt evolution, binary tournament, fitness (task + LLM critic), emergent tool synthesis; relevance to vision-model intake.
+\end{itemize}
+
+The original papers (\texttt{Trace.pdf}, \texttt{GEPA\_paper.pdf}, \texttt{evolutionary\_prompt\_optimization.pdf}) are also in \texttt{Literature\_and\_notes} for full detail.
+
+\section{Stage 2: Comparative Optimization Approaches}
+
+To provide a deep dive for your project proposal, here is a detailed breakdown of the two approaches. This section explores the mechanical differences, the data requirements, and the operational logic of how each system actually ``learns'' to process your work orders.
+
+\subsection{Approach 1: The ``Trace + GEPA'' (Reflective Graph Optimization)}
+
+This approach treats your AI system like a differentiable program, but instead of math, it uses language to ``back-propagate'' improvements.
+
+\subsubsection{A. The Infrastructure: Trace}
+
+\begin{itemize}
+  \item \textbf{Graph Mapping:} You define your workflow as a sequence of nodes.
+  \item \textbf{Node 1 (CV):} Inputs the PDF; outputs a structured JSON.
+  \item \textbf{Node 2 (Agent):} Inputs JSON; outputs a maintenance schedule.
+  \item \textbf{The ``Trace'' Oracle:} As a work order passes through, Trace records the \textbf{Execution Trace}. This isn't just the output; it's the ``thought process'' (Chain of Thought) and the specific tool calls made.
+  \item \textbf{Rich Feedback:} When the schedule is wrong, you don't just give a ``0'' score. You provide a sentence: ``The agent scheduled a tech for Monday, but the CV extraction missed the `Emergency' tag in the footer.''
+\end{itemize}
+
+\subsubsection{B. The Optimizer: GEPA (Genetic--Pareto)}
+
+\begin{itemize}
+  \item \textbf{Natural Language Reflection:} GEPA takes that ``Rich Feedback'' and the ``Execution Trace'' and asks an LLM: ``Why did we fail?'' The LLM might reflect: ``The CV prompt is too focused on the header and ignored the footer.''
+  \item \textbf{The Pareto Frontier:} This is the ``secret sauce'' for your diverse production settings. GEPA maintains a collection of prompts that are the ``best'' at different things.
+  \item Prompt A might be 100\% accurate for 1-page invoices.
+  \item Prompt B might be the only one that correctly handles 10-page complex inspections.
+  \item GEPA keeps both instead of averaging them, allowing the system to handle diverse layouts without one ``breaking'' the other.
+\end{itemize}
+
+\subsection{Approach 2: The ``DSPy + MIPROv2'' (Programmatic Compilation)}
+
+This approach treats prompts as ``weights'' that need to be ``compiled'' based on a dataset. It is less about ``reflecting'' on a single mistake and more about ``optimizing'' over a whole batch.
+
+\subsubsection{A. The Structure: Signatures \& Modules}
+
+\begin{itemize}
+  \item \textbf{Abstraction:} You don't write prompts. You define \textbf{Signatures}.
+  \item \textbf{Example:} \texttt{class WorkOrderExtractor(dspy.Signature):} ``Extract fields from work order'' \texttt{image -> json\_data}
+  \item \textbf{Modules:} You wrap these signatures in modules (e.g.\ \texttt{dspy.ChainOfThought} or \texttt{dspy.ReAct}). This tells the system how to reason without you having to write the instructions.
+\end{itemize}
+
+\subsubsection{B. The Optimizer: MIPROv2}
+
+\begin{itemize}
+  \item \textbf{The Search Space:} MIPROv2 generates dozens of potential ``Instructions'' and ``Few-Shot Examples'' (demonstrations).
+  \item \textbf{Bayesian Optimization:} It treats the prompt as a black box. It tries Version 1, sees the score, tries Version 2, and uses a mathematical model to guess which Version 3 will be better.
+  \item \textbf{Data Requirement:} It requires a ``Training Set'' of 20--50 examples where you have already provided the ``Perfect JSON'' output. It optimizes the prompt until the system's output matches your ``Perfect JSON'' as closely as possible.
+\end{itemize}
+
+\subsection{Detailed Comparison for Feasibility}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Feature} & \textbf{Approach 1: Trace + GEPA} & \textbf{Approach 2: DSPy + MIPROv2} \\
+\midrule
+Learning Style & Individual: learns deeply from one mistake at a time. & Batch: learns by looking at a whole dataset at once. \\
+Instruction Type & Natural language: the LLM rewrites complex rules. & Demonstrations: relies heavily on few-shot examples. \\
+Handling Diversity & Excellent: Pareto selection handles many PDF styles. & Moderate: can struggle if the ``average'' prompt doesn't fit everyone. \\
+Setup Effort & High: must define the Trace graph carefully. & Medium: must annotate a ``gold standard'' dataset. \\
+Inference Speed & Fast: uses a single, highly refined prompt. & Variable: can become slow if it uses many few-shot examples. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Stage 3: Evaluation Metrics (Feasibility \& Success)}
+
+To determine which approach is most feasible for your production environment, we establish three basic evaluation pillars:
+
+\begin{itemize}
+  \item \textbf{Extraction Fidelity (Accuracy):}
+  \begin{itemize}
+    \item \textbf{Exact Match (EM):} For critical fields like Equipment IDs, Serial Numbers, and Part Numbers.
+    \item \textbf{Semantic Similarity (BERTScore/F1):} For free-text descriptions of maintenance issues.
+  \end{itemize}
+  \item \textbf{Sample Efficiency (Learning Rate):}
+  \begin{itemize}
+    \item Measure the \textbf{Learning Curve:} How many work orders does each approach need to process before reaching a 90\% success rate? (Approach 1 should excel here.)
+  \end{itemize}
+  \item \textbf{Generalization (Robustness):}
+  \begin{itemize}
+    \item \textbf{Out-of-Distribution (OOD) Test:} How does a prompt optimized for ``Region A'' work orders perform when suddenly given ``Region B'' work orders with a different layout? (The Pareto frontier in Approach 1 is specifically designed for this.)
+  \end{itemize}
+\end{itemize}
+
+\section{Recommendation}
+
+For the initial research stage, \textbf{Approach 1 (Trace + GEPA)} is recommended. Its ability to perform ``Natural Language Reflection'' on the rich data provided by the CV active extraction (or by the simpler vision/OCR intake) allows for much faster iteration and deeper ``understanding'' of why the system is failing, which is crucial for complex industrial work orders.
+
+Starting with the \textbf{alternative intake} (vision model with simple instructions or fixed OCR) keeps the pipeline tractable while we build and evaluate the Trace + GEPA optimization loop; the full CV active extraction can be considered once the optimization framework is in place and if higher-fidelity extraction becomes a priority.
+
+\vspace{1em}
+\hrule
+\vspace{0.5em}
+
+\noindent \textit{Source document: Srouces.docx. Expanded with alternative Stage 1 approach and references to project literature notes.}
+
+\end{document}
