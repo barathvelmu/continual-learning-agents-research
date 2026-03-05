@@ -1,0 +1,374 @@
+{
+  "doc_id": "344098",
+  "sections": [
+    {
+      "section_id": "ASI-344098",
+      "prefix": "ASI",
+      "page_count": 1,
+      "header": {
+        "unit_number": 23238,
+        "customer_name": "Benjamin Sanchez",
+        "customer_address": "169 Donovan Ford",
+        "customer_city_state_zip": "Port Jacobland, TX 31329",
+        "customer_email": "kwilson@example.org",
+        "home_phone": "353-346-2475",
+        "contact_phone": "791-366-9784",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 7227,
+        "advisor_name": "Katie Anderson",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K9310341",
+        "miles_in": 9,
+        "miles_out": 9,
+        "tag": "T23238",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-06-25",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "delivery_date": "2019-07-01",
+        "stock_number": 23238,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "time_in": "14:51",
+        "date_in": "2019-06-25",
+        "time_out": "10:24",
+        "date_out": "2019-07-01",
+        "customer_number": 996865,
+        "ro_number": 344098
+      },
+      "footer": {
+        "labor_amount": 0.0,
+        "parts_amount": 0.0,
+        "gas_oil_lube": 0.0,
+        "sublet_amount": 0.0,
+        "misc_charges": 0.0,
+        "total_charges": 0.0,
+        "less_insurance": 0.0,
+        "sales_tax": 0.0,
+        "please_pay": 0.0
+      },
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "text": "CUSTOMER STATES THAT THE NAVIGATION DOES NOT LOAD. CHECK AND ADVISE",
+            "op": [
+              {
+                "code": "MA001",
+                "text": "RELOADED NAVI",
+                "labor": [
+                  {
+                    "tech": 1202,
+                    "type": "C",
+                    "a_hrs": 0.49,
+                    "s_hrs": 0.0,
+                    "cost": 0,
+                    "sale": 0,
+                    "comp": null,
+                    "list": null,
+                    "net": 0.0,
+                    "total": 0.0
+                  }
+                ],
+                "parts": []
+              }
+            ],
+            "log": [
+              {
+                "tech": 1202,
+                "date": "2019-06-26",
+                "time": "09:40",
+                "miles": 9,
+                "text": "RE LOAD NAVIGATION. RECHECK FOR PROPER OPERATION, ALL OK."
+              }
+            ]
+          }
+        ],
+        "bar": "AG-054466",
+        "epa": "CAD982041154",
+        "dealer_notes": "At Niello BMW we pride ourselves in our dedication of keeping our customers completely satisfied.  Soon you will be contacted by BMWNA regarding this service. If you cannot answer all the questions with an excellent rating, please let us know.",
+        "labor": [
+          {
+            "date": "2019-06-26",
+            "start": "08:06",
+            "finish": "08:34",
+            "duration": 0.47,
+            "type": "W",
+            "tech": 1202,
+            "line_letter": "A",
+            "charge": null
+          },
+          {
+            "date": null,
+            "start": "09:39",
+            "finish": "09:40",
+            "duration": 0.02,
+            "type": "W",
+            "tech": 1202,
+            "line_letter": "A",
+            "charge": null
+          }
+        ],
+        "acct_split": [
+          {
+            "acct": 4501,
+            "sale": 0,
+            "cost": 0
+          },
+          {
+            "acct": 2030,
+            "sale": 0,
+            "cost": 0
+          }
+        ],
+        "total_cost": 0,
+        "total_sale": 0,
+        "total_comp": 0
+      }
+    },
+    {
+      "section_id": "BWO-344098",
+      "prefix": "BWO",
+      "page_count": 1,
+      "header": {
+        "customer_name": "Benjamin Sanchez",
+        "customer_address": "169 Donovan Ford",
+        "customer_city_state_zip": "Port Jacobland, TX 31329",
+        "customer_email": "kwilson@example.org",
+        "home_phone": "353-346-2475",
+        "contact_phone": "791-366-9784",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 7227,
+        "advisor_name": "Jeffrey Daniels",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K9310341",
+        "miles_in": 9,
+        "miles_out": null,
+        "tag": "T23238",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-06-25",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "stock_number": 23238,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "date": "2019-06-25",
+        "time_in": "14:51",
+        "ro_number": 344098,
+        "customer_number": 996865,
+        "unit_number": 23238
+      },
+      "footer": {},
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "op_code": "MA001",
+            "type": "W94",
+            "text": "CUSTOMER STATES THAT THE NAVIGATION DOES NOT LOAD. CHECK AND ADVISE"
+          }
+        ]
+      }
+    },
+    {
+      "section_id": "CSI-344098",
+      "prefix": "CSI",
+      "page_count": 1,
+      "header": {
+        "unit_number": 23238,
+        "customer_name": "Benjamin Sanchez",
+        "customer_address": "169 Donovan Ford",
+        "customer_city_state_zip": "Port Jacobland, TX 31329",
+        "customer_email": "kwilson@example.org",
+        "home_phone": "353-346-2475",
+        "contact_phone": "791-366-9784",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 7227,
+        "advisor_name": "Katie Anderson",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K9310341",
+        "miles_in": 9,
+        "miles_out": 9,
+        "tag": "T23238",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-06-25",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "delivery_date": "2019-07-01",
+        "stock_number": 23238,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "time_in": "14:51",
+        "date_in": "2019-06-25",
+        "time_out": "10:24",
+        "date_out": "2019-07-01",
+        "customer_number": 996865,
+        "ro_number": 344098
+      },
+      "footer": {
+        "labor_amount": 0.0,
+        "parts_amount": 0.0,
+        "gas_oil_lube": 0.0,
+        "sublet_amount": 0.0,
+        "misc_charges": 0.0,
+        "total_charges": 0.0,
+        "less_insurance": 0.0,
+        "sales_tax": 0.0,
+        "please_pay": 0.0
+      },
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "text": "CUSTOMER STATES THAT THE NAVIGATION DOES NOT LOAD. CHECK AND ADVISE",
+            "op": [
+              {
+                "code": "MA001",
+                "text": "RELOADED NAVI",
+                "labor": [
+                  {
+                    "tech": 1202,
+                    "type": "C",
+                    "hours": null,
+                    "list": null,
+                    "net": 0.0,
+                    "total": 0.0
+                  }
+                ],
+                "parts": []
+              }
+            ],
+            "total_parts": 0.0,
+            "total_labor": 0.0,
+            "total_other": 0.0,
+            "total": 0.0,
+            "log": [
+              {
+                "tech": null,
+                "date": null,
+                "time": null,
+                "miles": 9,
+                "text": "RE LOAD NAVIGATION. RECHECK FOR PROPER OPERATION, ALL OK."
+              }
+            ]
+          }
+        ],
+        "bar": "AG-054466",
+        "epa": "CAD982041154",
+        "dealer_notes": "At Niello BMW we pride ourselves in our dedication of keeping our customers completely satisfied.  Soon you will be contacted by BMWNA regarding this service. If you cannot answer all the questions with an excellent rating, please let us know."
+      }
+    },
+    {
+      "section_id": "JSI-344098",
+      "prefix": "JSI",
+      "page_count": 1,
+      "header": {
+        "unit_number": 23238,
+        "customer_name": "Benjamin Sanchez",
+        "customer_address": "169 Donovan Ford",
+        "customer_city_state_zip": "Port Jacobland, TX 31329",
+        "customer_email": "kwilson@example.org",
+        "home_phone": "353-346-2475",
+        "contact_phone": "791-366-9784",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 7227,
+        "advisor_name": "Katie Anderson",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K9310341",
+        "miles_in": 9,
+        "miles_out": 9,
+        "tag": "T23238",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-06-25",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "delivery_date": "2019-07-01",
+        "stock_number": 23238,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "time_in": "14:51",
+        "date_in": "2019-06-25",
+        "time_out": "10:24",
+        "date_out": "2019-07-01",
+        "customer_number": 996865,
+        "ro_number": 344098
+      },
+      "footer": {
+        "labor_amount": 0.0,
+        "parts_amount": 0.0,
+        "gas_oil_lube": 0.0,
+        "sublet_amount": 0.0,
+        "misc_charges": 0.0,
+        "total_charges": 0.0,
+        "less_insurance": 0.0,
+        "sales_tax": 0.0,
+        "please_pay": 0.0
+      },
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "text": "CUSTOMER STATES THAT THE NAVIGATION DOES NOT LOAD. CHECK AND ADVISE",
+            "op": [
+              {
+                "code": "MA001",
+                "text": "RELOADED NAVI",
+                "labor": [
+                  {
+                    "tech": 1202,
+                    "type": "C",
+                    "hours": null,
+                    "list": null,
+                    "net": 0.0,
+                    "total": 0.0
+                  }
+                ],
+                "parts": []
+              }
+            ],
+            "total_parts": 0.0,
+            "total_labor": 0.0,
+            "total_other": 0.0,
+            "total": 0.0,
+            "log": [
+              {
+                "tech": null,
+                "date": null,
+                "time": null,
+                "miles": 9,
+                "text": "RE LOAD NAVIGATION. RECHECK FOR PROPER OPERATION, ALL OK."
+              }
+            ]
+          }
+        ],
+        "bar": "AG-054466",
+        "epa": "CAD982041154",
+        "dealer_notes": "At Niello BMW we pride ourselves in our dedication of keeping our customers completely satisfied.  Soon you will be contacted by BMWNA regarding this service. If you cannot answer all the questions with an excellent rating, please let us know."
+      }
+    }
+  ]
+}

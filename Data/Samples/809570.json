@@ -1,0 +1,538 @@
+{
+  "doc_id": "809570",
+  "sections": [
+    {
+      "section_id": "ASI-809570",
+      "prefix": "ASI",
+      "page_count": 1,
+      "header": {
+        "unit_number": 81482,
+        "customer_name": "Sean Blake",
+        "customer_address": "01338 Anna Stravenue Suite 379",
+        "customer_city_state_zip": "North Judithbury, IN 18790",
+        "customer_email": "rhodespatricia@example.org",
+        "home_phone": "615-759-4078",
+        "contact_phone": "3159430391",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 2424,
+        "advisor_name": "Phillip Garcia",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K1043321",
+        "miles_in": 53,
+        "miles_out": 54,
+        "tag": "TO986",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-07-16",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "delivery_date": "2019-07-16",
+        "stock_number": 81482,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "time_in": "17:48",
+        "date_in": "2019-07-15",
+        "time_out": "11:59",
+        "date_out": "2019-07-16",
+        "customer_number": 876646,
+        "ro_number": 809570
+      },
+      "footer": {
+        "labor_amount": 0.0,
+        "parts_amount": 0.0,
+        "gas_oil_lube": 0.0,
+        "sublet_amount": 0.0,
+        "misc_charges": 0.0,
+        "total_charges": 0.0,
+        "less_insurance": 0.0,
+        "sales_tax": 0.0,
+        "please_pay": 0.0
+      },
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "text": "PERFORM OPEN CAMPAIGN 0012080500 B122019 DELIVERY STOP: PROGRAM CONBTROL UNITS.",
+            "cause": "RECALL",
+            "op": [
+              {
+                "code": "0067345",
+                "text": "PROGRAMMING AND ENCODING VEHICLE",
+                "labor": [
+                  {
+                    "tech": 309,
+                    "type": "WBS",
+                    "a_hrs": 0.5,
+                    "s_hrs": 0.1,
+                    "cost": 3450,
+                    "sale": 15080,
+                    "comp": null,
+                    "list": null,
+                    "net": 150.8,
+                    "total": 150.8
+                  }
+                ],
+                "parts": []
+              }
+            ],
+            "fc": "0012080500",
+            "part_number": null,
+            "parts_cost": 0,
+            "parts_sale": 0,
+            "claim_type": "1W",
+            "auth_code": null,
+            "labor_cost": 3450,
+            "labor_sale": 15080,
+            "log": [
+              {
+                "tech": 309,
+                "date": "2019-07-16",
+                "time": "11:33",
+                "miles": 54,
+                "text": "Performed vehicle software update as per SIB."
+              }
+            ]
+          }
+        ],
+        "bar": "AG-054466",
+        "epa": "CAD982041154",
+        "dealer_notes": "At Niello BMW we pride ourselves in our dedication of keeping our customers completely satisfied.  Soon you will be contacted by BMWNA regarding this service. If you cannot answer all the questions with an excellent rating, please let us know.",
+        "labor": [
+          {
+            "date": "2019-07-16",
+            "start": "11:03",
+            "finish": "11:33",
+            "duration": 0.5,
+            "type": "W",
+            "tech": 309,
+            "line_letter": "A",
+            "charge": null
+          }
+        ],
+        "acct_split": [
+          {
+            "acct": 4543,
+            "sale": 15080,
+            "cost": 3450
+          },
+          {
+            "acct": 2220,
+            "sale": 15080,
+            "cost": 0
+          }
+        ],
+        "total_cost": 3450,
+        "total_sale": 15080,
+        "total_comp": 0
+      }
+    },
+    {
+      "section_id": "BWO-809570",
+      "prefix": "BWO",
+      "page_count": 1,
+      "header": {
+        "customer_name": "Sean Blake",
+        "customer_address": "01338 Anna Stravenue Suite 379",
+        "customer_city_state_zip": "North Judithbury, IN 18790",
+        "customer_email": "rhodespatricia@example.org",
+        "home_phone": "615-759-4078",
+        "contact_phone": "3159430391",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 2424,
+        "advisor_name": "Jay Ramirez",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K1043321",
+        "miles_in": 53,
+        "miles_out": null,
+        "tag": "TO986",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-07-16",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "stock_number": 81482,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "date": "2019-07-15",
+        "time_in": "17:48",
+        "ro_number": 809570,
+        "customer_number": 876646,
+        "unit_number": 81482
+      },
+      "footer": {},
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "op_code": "MA001",
+            "type": "W94",
+            "text": "PERFORM OPEN CAMPAIGN 0012080500 B122019 DELIVERY STOP: PROGRAM CONBTROL UNITS."
+          }
+        ]
+      }
+    },
+    {
+      "section_id": "CSI-809570",
+      "prefix": "CSI",
+      "page_count": 1,
+      "header": {
+        "unit_number": 81482,
+        "customer_name": "Sean Blake",
+        "customer_address": "01338 Anna Stravenue Suite 379",
+        "customer_city_state_zip": "North Judithbury, IN 18790",
+        "customer_email": "rhodespatricia@example.org",
+        "home_phone": "615-759-4078",
+        "contact_phone": "3159430391",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 2424,
+        "advisor_name": "Phillip Garcia",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K1043321",
+        "miles_in": 53,
+        "miles_out": 54,
+        "tag": "TO986",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-07-16",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "delivery_date": "2019-07-16",
+        "stock_number": 81482,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "time_in": "17:48",
+        "date_in": "2019-07-15",
+        "time_out": "11:59",
+        "date_out": "2019-07-16",
+        "customer_number": 876646,
+        "ro_number": 809570
+      },
+      "footer": {
+        "labor_amount": 0.0,
+        "parts_amount": 0.0,
+        "gas_oil_lube": 0.0,
+        "sublet_amount": 0.0,
+        "misc_charges": 0.0,
+        "total_charges": 0.0,
+        "less_insurance": 0.0,
+        "sales_tax": 0.0,
+        "please_pay": 0.0
+      },
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "text": "PERFORM OPEN CAMPAIGN 0012080500 B122019 DELIVERY STOP: PROGRAM CONBTROL UNITS.",
+            "cause": "RECALL",
+            "op": [
+              {
+                "code": "0067345",
+                "text": "PROGRAMMING AND ENCODING VEHICLE",
+                "labor": [
+                  {
+                    "tech": 309,
+                    "type": "WBS",
+                    "hours": null,
+                    "list": null,
+                    "net": null,
+                    "total": 0.0
+                  }
+                ],
+                "parts": []
+              }
+            ],
+            "fc": "0012080500",
+            "part_number": null,
+            "parts_cost": null,
+            "parts_sale": null,
+            "claim_type": "1W",
+            "auth_code": null,
+            "total_parts": 0.0,
+            "total_labor": 0.0,
+            "total_other": 0.0,
+            "total": 0.0,
+            "log": [
+              {
+                "tech": null,
+                "date": null,
+                "time": null,
+                "miles": 54,
+                "text": "Performed vehicle software update as per SIB."
+              }
+            ]
+          }
+        ],
+        "bar": "AG-054466",
+        "epa": "CAD982041154",
+        "dealer_notes": "At Niello BMW we pride ourselves in our dedication of keeping our customers completely satisfied.  Soon you will be contacted by BMWNA regarding this service. If you cannot answer all the questions with an excellent rating, please let us know."
+      }
+    },
+    {
+      "section_id": "JSI-809570",
+      "prefix": "JSI",
+      "page_count": 1,
+      "header": {
+        "unit_number": 81482,
+        "customer_name": "Sean Blake",
+        "customer_address": "01338 Anna Stravenue Suite 379",
+        "customer_city_state_zip": "North Judithbury, IN 18790",
+        "customer_email": "rhodespatricia@example.org",
+        "home_phone": "615-759-4078",
+        "contact_phone": "3159430391",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 2424,
+        "advisor_name": "Phillip Garcia",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K1043321",
+        "miles_in": 53,
+        "miles_out": 54,
+        "tag": "TO986",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-07-16",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "delivery_date": "2019-07-16",
+        "stock_number": 81482,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "time_in": "17:48",
+        "date_in": "2019-07-15",
+        "time_out": "11:59",
+        "date_out": "2019-07-16",
+        "customer_number": 876646,
+        "ro_number": 809570
+      },
+      "footer": {
+        "labor_amount": 0.0,
+        "parts_amount": 0.0,
+        "gas_oil_lube": 0.0,
+        "sublet_amount": 0.0,
+        "misc_charges": 0.0,
+        "total_charges": 0.0,
+        "less_insurance": 0.0,
+        "sales_tax": 0.0,
+        "please_pay": 0.0
+      },
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "text": "PERFORM OPEN CAMPAIGN 0012080500 B122019 DELIVERY STOP: PROGRAM CONBTROL UNITS.",
+            "cause": "RECALL",
+            "op": [
+              {
+                "code": "0067345",
+                "text": "PROGRAMMING AND ENCODING VEHICLE",
+                "labor": [
+                  {
+                    "tech": 309,
+                    "type": "WBS",
+                    "hours": null,
+                    "list": null,
+                    "net": null,
+                    "total": 0.0
+                  }
+                ],
+                "parts": []
+              }
+            ],
+            "fc": "0012080500",
+            "part_number": null,
+            "parts_cost": null,
+            "parts_sale": null,
+            "claim_type": "1W",
+            "auth_code": null,
+            "total_parts": 0.0,
+            "total_labor": 0.0,
+            "total_other": 0.0,
+            "total": 0.0,
+            "log": [
+              {
+                "tech": null,
+                "date": null,
+                "time": null,
+                "miles": 54,
+                "text": "Performed vehicle software update as per SIB."
+              }
+            ]
+          }
+        ],
+        "bar": "AG-054466",
+        "epa": "CAD982041154",
+        "dealer_notes": "At Niello BMW we pride ourselves in our dedication of keeping our customers completely satisfied.  Soon you will be contacted by BMWNA regarding this service. If you cannot answer all the questions with an excellent rating, please let us know."
+      }
+    },
+    {
+      "section_id": "WSI-809570",
+      "prefix": "WSI",
+      "page_count": 2,
+      "header": {
+        "unit_number": 81482,
+        "customer_name": "Sean Blake",
+        "customer_address": "01338 Anna Stravenue Suite 379",
+        "customer_city_state_zip": "North Judithbury, IN 18790",
+        "customer_email": "rhodespatricia@example.org",
+        "home_phone": "615-759-4078",
+        "contact_phone": "3159430391",
+        "bus_phone": null,
+        "cell_phone": null,
+        "advisor_id": 2424,
+        "advisor_name": "Phillip Garcia",
+        "color": "BLACKSAP",
+        "year": "19",
+        "make": "BMW",
+        "model": "X7",
+        "submodel": "XDR40I",
+        "vin": "5UXCW2C53K1043321",
+        "miles_in": 53,
+        "miles_out": 54,
+        "tag": "TO986",
+        "open_date": "2019-06-21",
+        "deal_type": "DD",
+        "promise_time": "17:00",
+        "close_date": "2019-07-16",
+        "rate": 195.0,
+        "pay_type": "CC",
+        "delivery_date": "2019-07-16",
+        "stock_number": 81482,
+        "engine": "3.0_Liter_Twin_Turbo",
+        "time_in": "17:48",
+        "date_in": "2019-07-15",
+        "time_out": "11:59",
+        "date_out": "2019-07-16",
+        "customer_number": 876646,
+        "ro_number": 809570
+      },
+      "footer": {
+        "labor_amount": 150.8,
+        "parts_amount": 0.0,
+        "gas_oil_lube": 0.0,
+        "sublet_amount": 0.0,
+        "misc_charges": 0.0,
+        "total_charges": 150.8,
+        "less_insurance": 0.0,
+        "sales_tax": 0.0,
+        "please_pay": 150.8
+      },
+      "content": {
+        "job": [
+          {
+            "line_letter": "A",
+            "text": "PERFORM OPEN CAMPAIGN 0012080500 B122019 DELIVERY STOP: PROGRAM CONBTROL UNITS.",
+            "cause": "RECALL",
+            "op": [
+              {
+                "code": "0067345",
+                "text": "PROGRAMMING AND ENCODING VEHICLE",
+                "labor": [
+                  {
+                    "tech": 309,
+                    "type": "WBS",
+                    "hours": 0.1,
+                    "list": null,
+                    "net": 150.8,
+                    "total": 150.8
+                  }
+                ]
+              }
+            ],
+            "fc": "0012080500",
+            "part_number": null,
+            "parts_cost": 0,
+            "parts_sale": 0,
+            "claim_type": "1W",
+            "auth_code": null,
+            "labor_cost": 3450,
+            "labor_sale": 15080,
+            "wsi_labor": [
+              {
+                "tech": 309,
+                "a_hrs": 0.5,
+                "s_hrs": 0.1
+              }
+            ],
+            "total_labor": 34.5,
+            "total_parts": 0.0,
+            "total_other": 0.0,
+            "total_lub": 0.0,
+            "subtotal": 0.0,
+            "total": 34.5,
+            "log": [
+              {
+                "tech": null,
+                "date": null,
+                "time": null,
+                "miles": 54,
+                "text": "Performed vehicle software update as per SIB."
+              }
+            ]
+          }
+        ],
+        "bar": "AG-054466",
+        "epa": "CAD982041154",
+        "dealer_notes": "At Niello BMW we pride ourselves in our dedication of keeping our customers completely satisfied.  Soon you will be contacted by BMWNA regarding this service. If you cannot answer all the questions with an excellent rating, please let us know.",
+        "wsi_labor": [
+          {
+            "tech": 309,
+            "a_hrs": 0.5,
+            "s_hrs": 0.1
+          }
+        ],
+        "total_labor": 34.5,
+        "total_parts": 0.0,
+        "total_other": 0.0,
+        "total_lub": 0.0,
+        "subtotal": 0.0,
+        "total": 34.5,
+        "labor": [
+          {
+            "date": "2019-07-16",
+            "start": "11:03",
+            "finish": "11:33",
+            "duration": 0.5,
+            "type": "W",
+            "tech": 309,
+            "line_letter": "A",
+            "charge": null
+          }
+        ],
+        "acct_split": [
+          {
+            "acct": 4543,
+            "sale": 15080,
+            "cost": 3450
+          },
+          {
+            "acct": 2220,
+            "sale": 15080,
+            "cost": 0
+          }
+        ],
+        "total_cost": 3450,
+        "total_sale": 15080,
+        "total_comp": 0
+      }
+    }
+  ]
+}
