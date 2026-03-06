@@ -1,0 +1,644 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "doc_id": {
+      "type": "string"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "section_id": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "page_count": {
+            "type": "integer"
+          },
+          "header": {
+            "type": "object",
+            "properties": {
+              "unit_number": {
+                "type": "integer"
+              },
+              "customer_name": {
+                "type": "string"
+              },
+              "customer_address": {
+                "type": "string"
+              },
+              "customer_city_state_zip": {
+                "type": "string"
+              },
+              "customer_email": {
+                "type": "string"
+              },
+              "home_phone": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "contact_phone": {
+                "type": "string"
+              },
+              "bus_phone": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "cell_phone": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "advisor_id": {
+                "type": "integer"
+              },
+              "advisor_name": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "year": {
+                "type": "string"
+              },
+              "make": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "submodel": {
+                "type": "string"
+              },
+              "vin": {
+                "type": "string"
+              },
+              "miles_in": {
+                "type": "integer"
+              },
+              "miles_out": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "tag": {
+                "type": "string"
+              },
+              "open_date": {
+                "type": "string"
+              },
+              "deal_type": {
+                "type": "string"
+              },
+              "promise_time": {
+                "type": "string"
+              },
+              "close_date": {
+                "type": "string"
+              },
+              "rate": {
+                "type": "number"
+              },
+              "pay_type": {
+                "type": "string"
+              },
+              "delivery_date": {
+                "type": "string"
+              },
+              "stock_number": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "engine": {
+                "type": "string"
+              },
+              "time_in": {
+                "type": "string"
+              },
+              "date_in": {
+                "type": "string"
+              },
+              "time_out": {
+                "type": "string"
+              },
+              "date_out": {
+                "type": "string"
+              },
+              "customer_number": {
+                "type": "integer"
+              },
+              "ro_number": {
+                "type": "integer"
+              },
+              "date": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "advisor_id",
+              "advisor_name",
+              "bus_phone",
+              "cell_phone",
+              "close_date",
+              "color",
+              "contact_phone",
+              "customer_address",
+              "customer_city_state_zip",
+              "customer_email",
+              "customer_name",
+              "customer_number",
+              "deal_type",
+              "engine",
+              "home_phone",
+              "make",
+              "miles_in",
+              "miles_out",
+              "model",
+              "open_date",
+              "pay_type",
+              "promise_time",
+              "rate",
+              "ro_number",
+              "stock_number",
+              "submodel",
+              "tag",
+              "time_in",
+              "vin",
+              "year"
+            ]
+          },
+          "footer": {
+            "type": "object",
+            "properties": {
+              "labor_amount": {
+                "type": "number"
+              },
+              "parts_amount": {
+                "type": "number"
+              },
+              "gas_oil_lube": {
+                "type": "number"
+              },
+              "sublet_amount": {
+                "type": "number"
+              },
+              "misc_charges": {
+                "type": "number"
+              },
+              "total_charges": {
+                "type": "number"
+              },
+              "less_insurance": {
+                "type": "number"
+              },
+              "sales_tax": {
+                "type": "number"
+              },
+              "please_pay": {
+                "type": "number"
+              }
+            }
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "job": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "line_letter": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "cause": {
+                      "type": "string"
+                    },
+                    "op": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "labor": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "tech": {
+                                  "type": [
+                                    "integer",
+                                    "null"
+                                  ]
+                                },
+                                "type": {
+                                  "type": [
+                                    "null",
+                                    "string"
+                                  ]
+                                },
+                                "a_hrs": {
+                                  "type": "number"
+                                },
+                                "s_hrs": {
+                                  "type": "number"
+                                },
+                                "cost": {
+                                  "type": "integer"
+                                },
+                                "sale": {
+                                  "type": "integer"
+                                },
+                                "comp": {
+                                  "type": [
+                                    "integer",
+                                    "null"
+                                  ]
+                                },
+                                "list": {
+                                  "type": "null"
+                                },
+                                "net": {
+                                  "type": [
+                                    "null",
+                                    "number"
+                                  ]
+                                },
+                                "total": {
+                                  "type": "number"
+                                },
+                                "hours": {
+                                  "type": [
+                                    "null",
+                                    "number"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "list",
+                                "net",
+                                "tech",
+                                "total",
+                                "type"
+                              ]
+                            }
+                          },
+                          "parts": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "quantity": {
+                                  "type": "integer"
+                                },
+                                "number": {
+                                  "type": "string"
+                                },
+                                "code": {
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "type": "string"
+                                },
+                                "cost": {
+                                  "type": "integer"
+                                },
+                                "sale": {
+                                  "type": "integer"
+                                },
+                                "comp": {
+                                  "type": "integer"
+                                },
+                                "list": {
+                                  "type": "number"
+                                },
+                                "net": {
+                                  "type": "number"
+                                },
+                                "total": {
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "number",
+                                "quantity",
+                                "text",
+                                "total"
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "labor",
+                          "text"
+                        ]
+                      }
+                    },
+                    "fc": {
+                      "type": "string"
+                    },
+                    "part_number": {
+                      "type": "null"
+                    },
+                    "parts_cost": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "parts_sale": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "claim_type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "auth_code": {
+                      "type": "null"
+                    },
+                    "labor_cost": {
+                      "type": "integer"
+                    },
+                    "labor_sale": {
+                      "type": "integer"
+                    },
+                    "log": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tech": {
+                            "type": [
+                              "integer",
+                              "null"
+                            ]
+                          },
+                          "date": {
+                            "type": [
+                              "null",
+                              "string"
+                            ]
+                          },
+                          "time": {
+                            "type": [
+                              "null",
+                              "string"
+                            ]
+                          },
+                          "miles": {
+                            "type": "integer"
+                          },
+                          "text": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "date",
+                          "miles",
+                          "tech",
+                          "text",
+                          "time"
+                        ]
+                      }
+                    },
+                    "op_code": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "total_parts": {
+                      "type": "number"
+                    },
+                    "total_labor": {
+                      "type": "number"
+                    },
+                    "total_other": {
+                      "type": "number"
+                    },
+                    "total": {
+                      "type": "number"
+                    },
+                    "wsi_labor": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "tech": {
+                            "type": "integer"
+                          },
+                          "a_hrs": {
+                            "type": "number"
+                          },
+                          "s_hrs": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "a_hrs",
+                          "s_hrs",
+                          "tech"
+                        ]
+                      }
+                    },
+                    "total_lub": {
+                      "type": "number"
+                    },
+                    "subtotal": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "line_letter",
+                    "text"
+                  ]
+                }
+              },
+              "bar": {
+                "type": "string"
+              },
+              "epa": {
+                "type": "string"
+              },
+              "dealer_notes": {
+                "type": "string"
+              },
+              "labor": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "start": {
+                      "type": "string"
+                    },
+                    "finish": {
+                      "type": "string"
+                    },
+                    "duration": {
+                      "type": "number"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "tech": {
+                      "type": "integer"
+                    },
+                    "line_letter": {
+                      "type": "string"
+                    },
+                    "charge": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "charge",
+                    "date",
+                    "duration",
+                    "finish",
+                    "line_letter",
+                    "start",
+                    "tech",
+                    "type"
+                  ]
+                }
+              },
+              "acct_split": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "acct": {
+                      "type": "integer"
+                    },
+                    "sale": {
+                      "type": "integer"
+                    },
+                    "cost": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "acct",
+                    "cost",
+                    "sale"
+                  ]
+                }
+              },
+              "total_cost": {
+                "type": "integer"
+              },
+              "total_sale": {
+                "type": "integer"
+              },
+              "total_comp": {
+                "type": "integer"
+              },
+              "wsi_labor": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "tech": {
+                      "type": "integer"
+                    },
+                    "a_hrs": {
+                      "type": "number"
+                    },
+                    "s_hrs": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "a_hrs",
+                    "s_hrs",
+                    "tech"
+                  ]
+                }
+              },
+              "total_labor": {
+                "type": "number"
+              },
+              "total_parts": {
+                "type": "number"
+              },
+              "total_other": {
+                "type": "number"
+              },
+              "total_lub": {
+                "type": "number"
+              },
+              "subtotal": {
+                "type": "number"
+              },
+              "total": {
+                "type": "number"
+              },
+              "est_amount": {
+                "type": "number"
+              },
+              "est_date": {
+                "type": "string"
+              },
+              "est_time": {
+                "type": "string"
+              },
+              "est_advisor": {
+                "type": "integer"
+              },
+              "amount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "job"
+            ]
+          }
+        },
+        "required": [
+          "content",
+          "footer",
+          "header",
+          "page_count",
+          "prefix",
+          "section_id"
+        ]
+      }
+    }
+  },
+  "required": [
+    "doc_id",
+    "sections"
+  ]
+}
